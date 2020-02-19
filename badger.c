@@ -25,7 +25,7 @@
 
 void
 bwudpInitializeInterface(const uint8_t *ethernetAddress,
-                         const uint8_t *ipv4Address)
+                         const uint8_t *ipv4Addr)
 {
     int i;
     int a = 0;
@@ -39,7 +39,7 @@ bwudpInitializeInterface(const uint8_t *ethernetAddress,
     /* Configure IPv4 address */
     for (i = 0 ; i < 4 ; i++, a++) {
         GPIO_WRITE(GPIO_IDX_NET_CONFIG_CSR, (a << CONFIG_CSR_ADDRESS_SHIFT) |
-                                                                ipv4Address[i]);
+                                                                   ipv4Addr[i]);
     }
 
     /* Enable packet reception */

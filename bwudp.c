@@ -121,7 +121,7 @@ static struct bwudpInterface *defaultRouteInterface;
 static int
 isOnNetwork(struct bwudpInterface *ip, ipv4Address *addr)
 {
-    int i;
+    unsigned int i;
     for (i = 0 ; i < sizeof addr->a ; i++) {
         if ((addr->a[i] & ip->myNetmask.a[i]) !=
                                     (ip->myAddress.a[i] & ip->myNetmask.a[i])) {
@@ -135,7 +135,7 @@ isOnNetwork(struct bwudpInterface *ip, ipv4Address *addr)
 static uint16_t
 headerChecksum(struct ipv4Header *ip)
 {
-    int i;
+    unsigned int i;
     uint32_t sum = 0;
     uint16_t *p16 = (uint16_t *)ip, c;
     ip->checksum = 0;
@@ -149,7 +149,7 @@ headerChecksum(struct ipv4Header *ip)
 
 int
 bwudpRegisterInterface(BWUDP_INTERFACE_INDEX
-                       ethernetMAC *ethernetMAC,
+                       ethernetMAC *eMAC,
                        ipv4Address *address,
                        ipv4Address *netmask,
                        ipv4Address *gateway)
@@ -161,7 +161,7 @@ bwudpRegisterInterface(BWUDP_INTERFACE_INDEX
     if (ip->txFrame.protocol[0] != 0) {
         return -1;
     }
-    ip->myEthernetMAC = *ethernetMAC;
+    ip->myEthernetMAC = *eMAC;
     ip->myAddress = *address;
 #if BWUDP_INTERFACE_CAPACITY > 1
     ip->index = interfaceIndex;
@@ -232,7 +232,7 @@ bwudpCrank(void)
         else if (protocol == 0x0806) {
             struct bwudpEndpoint *ep = ip->arpEndpoint;
             struct arpPacket *ap = (struct arpPacket *)&ip->rxFrame.ipv4;
-            if ((length >= (sizeof(ip->arpFrame) - sizeof(ip->arpFrame).pad))
+            if ((length + sizeof(ip->arpFrame).pad >= (int) sizeof(ip->arpFrame))
              && (ep != NULL)
              && (ep->next == ep)
              && !memcmp(ap->spa, &ep->farAddress, sizeof(ipv4Address))) {
@@ -306,15 +306,15 @@ bwudpSend(bwudpHandle handle, const char *payload, int length)
         ip->arpEndpoint = ep;
         memset(&ip->arpFrame.destinationMAC, 0xFF, sizeof(ethernetMAC));
         memcpy(&ip->arpFrame.sourceMAC, &ip->myEthernetMAC,sizeof(ethernetMAC));
-        ip->arpFrame.protocol[0] = 0x08;    // 0806 -- ARP
+        ip->arpFrame.protocol[0] = 0x08;    /* 0806 -- ARP */
         ip->arpFrame.protocol[1] = 0x06;
-        ip->arpFrame.arp.htype[0] = 0x000;  // 0001 -- Ethernet
+        ip->arpFrame.arp.htype[0] = 0x000;  /* 0001 -- Ethernet */
         ip->arpFrame.arp.htype[1] = 0x01;
-        ip->arpFrame.arp.ptype[0] = 0x08;   // 0800 -- IPv4
+        ip->arpFrame.arp.ptype[0] = 0x08;   /* 0800 -- IPv4 */
         ip->arpFrame.arp.ptype[1] = 0x00;
         ip->arpFrame.arp.hlen = sizeof(ethernetMAC);
         ip->arpFrame.arp.plen = sizeof(ipv4Address);
-        ip->arpFrame.arp.oper[0] = 0x00;    // 0001 -- Request
+        ip->arpFrame.arp.oper[0] = 0x00;    /* 0001 -- Request */
         ip->arpFrame.arp.oper[1] = 0x01;
         memcpy(ip->arpFrame.arp.sha, &ip->myEthernetMAC, sizeof(ethernetMAC));
         memcpy(ip->arpFrame.arp.spa, &ip->myAddress, sizeof(ipv4Address));
