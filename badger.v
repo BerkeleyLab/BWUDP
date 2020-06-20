@@ -3,14 +3,11 @@ module badger (
     input              sysClk,
     input       [31:0] sysGPIO_OUT,
     input              sysConfigStrobe,
-(*mark_debug="true"*)
     input              sysTxStrobe,
     input              sysRxStrobe,
-(*mark_debug="true"*)
     input              sysRxDataStrobe,
     output wire [31:0] sysTxStatus,
     output wire [31:0] sysRxStatus,
-(*mark_debug="true"*)
     output wire [31:0] sysRxData,
 
     input            refClk125,
@@ -49,13 +46,9 @@ end
 
 ///////////////////////////////////////////////////////////////////////////////
 // Handle incoming frames and make available to processor
-(*mark_debug="true"*)
 wire [7:0] rx_mac_status_d;
-(*mark_debug="true"*)
 wire       rx_mac_status_s;
-(*mark_debug="true"*)
 reg rx_isARP;
-(*mark_debug="true"*)
 reg rx_mac_accept;
 always @(posedge rx_clk) begin
     // Is the processor possibly interested in this packet?
@@ -75,7 +68,6 @@ always @(posedge sysClk) begin
         sysHbank <= !sysHbank;
     end
 end
-(*mark_debug="true"*)
 wire [1:0] rx_mac_buf_status;
 (*ASYNC_REG="true"*) reg rx_mac_hbank_m = 0;
 reg rx_mac_hbank = 0;
@@ -93,13 +85,10 @@ reg [7:0] rxByteBuf00 [0:(1<<RX_WORD_ADDR_WIDTH)-1], rxByteBuf00Q;
 reg [7:0] rxByteBuf01 [0:(1<<RX_WORD_ADDR_WIDTH)-1], rxByteBuf01Q;
 reg [7:0] rxByteBuf10 [0:(1<<RX_WORD_ADDR_WIDTH)-1], rxByteBuf10Q;
 reg [7:0] rxByteBuf11 [0:(1<<RX_WORD_ADDR_WIDTH)-1], rxByteBuf11Q;
-(*mark_debug="true"*)
 wire [RX_MAC_ADDR_WIDTH-1:0] rx_mac_a;
 wire [1:0] rx_mac_bsel = rx_mac_a[1:0];
 wire [RX_WORD_ADDR_WIDTH-1:0] rx_mac_waddr = rx_mac_a[2+:RX_WORD_ADDR_WIDTH];
-(*mark_debug="true"*)
 wire [RX_MAC_DATA_WIDTH-1:0] rx_mac_d;
-(*mark_debug="true"*)
 wire                         rx_mac_wen;
 always @(posedge rx_clk) begin
     if (rx_mac_wen) begin
@@ -112,7 +101,6 @@ end
 
 localparam SYS_RX_INDEX_WIDTH = RX_WORD_ADDR_WIDTH - 1;
 reg [SYS_RX_INDEX_WIDTH-1:0] sysRxIndex;
-(*mark_debug="true"*)
 wire [RX_WORD_ADDR_WIDTH-1:0] sysRxAddress = { sysHbank, sysRxIndex };
 always @(posedge sysClk) begin
     if (sysRxDataStrobe) begin
@@ -129,22 +117,16 @@ assign sysRxData = { rxByteBuf11Q, rxByteBuf10Q, rxByteBuf01Q, rxByteBuf00Q };
 // Processor generation of outgoing frames
 localparam PK_TXBUF_ADDR_WIDTH = 10;
 localparam PK_TXBUF_DATA_WIDTH = 16;
-(*mark_debug="true"*)
 wire [PK_TXBUF_DATA_WIDTH-1:0] sysTxData = sysGPIO_OUT[0+:PK_TXBUF_DATA_WIDTH];
-(*mark_debug="true"*)
 wire [PK_TXBUF_ADDR_WIDTH-1:0] sysTxAddress = sysGPIO_OUT[PK_TXBUF_DATA_WIDTH+:
                                                            PK_TXBUF_ADDR_WIDTH];
 reg [PK_TXBUF_DATA_WIDTH-1:0] txBuf [0:(1<<PK_TXBUF_ADDR_WIDTH)-1];
-(*mark_debug="true"*)
 reg [PK_TXBUF_DATA_WIDTH-1:0] txBufQ;
-(*mark_debug="true"*)
 wire [PK_TXBUF_ADDR_WIDTH-1:0] txBufBadgerAddress;
 reg sysTxToggle = 0;
 (*ASYNC_REG="true"*) reg txToggle_m;
 reg  txToggle, txToggle_d;
-(*mark_debug="true"*)
 reg  tx_mac_start;
-(*mark_debug="true"*)
 wire tx_mac_done;
 always @(posedge sysClk) begin
     if (sysTxStrobe) begin
@@ -171,7 +153,6 @@ always @(posedge tx_clk) begin
 end
 
 // Double-data-rate conversion
-(*mark_debug="true"*)
 wire [7:0] vgmii_txd, vgmii_rxd;
 wire vgmii_tx_en, vgmii_tx_er, vgmii_rx_dv, vgmii_rx_er;
 gmii_to_rgmii #(.in_phase_tx_clk(1'b1)) gmii_to_rgmii_i(

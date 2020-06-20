@@ -1,9 +1,9 @@
 /*
- * Badger ethernet-in-fabrice I/O for bwudp
+ * Badger ethernet-in-fabric I/O for bwudp
  */
 #include <stdio.h>
-#include "gpio.h"
 #include "bwudp.h"
+#include "gpio.h"
 
 #define CONFIG_CSR_ENABLE_RX_ENABLE 0x80000000
 #define CONFIG_CSR_RX_ENABLE        0x40000000
@@ -88,7 +88,7 @@ bwudpFetchFrame(void *frame)
     /* Length is encoded in a rather unusual fashion and describes
      * full frame, including ethernet header, payload and FCS. */
     length = (((length_status & 0xF00) >> 1) | (length_status & 0x7F));
-    /* Don't include FCS in copy or returnd count */
+    /* Don't include FCS in copy or returned count */
     length -= 4;
     /* Minimum is ARP or 0-payload UDP.  Maximum is full ethernet payload. */
     if ((length < (14 + 20 + 8)) || (length > (14 + 1500))) {
