@@ -4,5 +4,5 @@
 #define GPIO_IDX_NET_TX_CSR      0xfeed0003
 #define GPIO_IDX_NET_RX_CSR      0xfeed0004
 
-static unsigned int GPIO_READ(unsigned long a) {return *(unsigned int *) a;}
-static void GPIO_WRITE(unsigned long a, unsigned int d) {*(unsigned int *)a = d;}
+static unsigned int GPIO_READ(unsigned long a) {return *(volatile unsigned int *) a;}
+static void GPIO_WRITE(unsigned long a, unsigned int d) {*(volatile unsigned int *)a = d;}
