@@ -31,7 +31,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "gpio.h"
 #include "bwudp.h"
 
 #define ETHERNET_PAYLOAD_CAPACITY   1500
@@ -304,7 +303,7 @@ void
 bwudpSend(bwudpHandle handle, const char *payload, int length)
 {
     struct bwudpEndpoint *ep = handle;
-    struct bwudpInterface *ip = ep->interface;;
+    struct bwudpInterface *ip = ep->interface;
     int l = sizeof(struct ipv4Header) + sizeof(struct udpHeader) + length;
     if (l > ETHERNET_PAYLOAD_CAPACITY) {
         return;
