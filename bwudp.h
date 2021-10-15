@@ -44,7 +44,7 @@
 #if BWUDP_INTERFACE_CAPACITY > 1
 # define BWUDP_INTERFACE_INDEX int interfaceIndex,
 #else
-# define BWUDP_INTERFACE_INDEX 
+# define BWUDP_INTERFACE_INDEX
 # define BWUDP_SERVER_INTERFACE
 #endif
 
