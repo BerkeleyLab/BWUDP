@@ -1,4 +1,6 @@
-// Wrapper around Bedrock/Badger Ethernet in fabric
+// Minimal wrapper around Bedrock/Badger Ethernet in fabric
+// Assumes RGMII hardware, and no access to Badger UDP port plugins.
+// Only interface used is the host MAC.
 module badger (
     input              sysClk,
     input       [31:0] sysGPIO_OUT,
@@ -10,10 +12,13 @@ module badger (
     output wire [31:0] sysRxStatus,
     output wire [31:0] sysRxData,
 
+    // Two phases of 125 MHz clock, created by on-board reference
     input            refClk125,
     input            refClk125d90,
+    // Who would use these?
     output wire      rx_clk,
     output wire      tx_clk,
+    // RGMII pins
     input            RGMII_RX_CLK,
     input            RGMII_RX_CTRL,
     input      [3:0] RGMII_RXD,
@@ -156,66 +161,66 @@ end
 wire [7:0] vgmii_txd, vgmii_rxd;
 wire vgmii_tx_en, vgmii_tx_er, vgmii_rx_dv, vgmii_rx_er;
 gmii_to_rgmii #(.in_phase_tx_clk(1'b1)) gmii_to_rgmii_i(
-        .rgmii_txd(RGMII_TXD),
-        .rgmii_tx_ctl(RGMII_TX_CTRL),
-        .rgmii_tx_clk(RGMII_TX_CLK),
-        .rgmii_rxd(RGMII_RXD),
-        .rgmii_rx_ctl(RGMII_RX_CTRL),
-        .rgmii_rx_clk(RGMII_RX_CLK),
+    .rgmii_txd(RGMII_TXD),
+    .rgmii_tx_ctl(RGMII_TX_CTRL),
+    .rgmii_tx_clk(RGMII_TX_CLK),
+    .rgmii_rxd(RGMII_RXD),
+    .rgmii_rx_ctl(RGMII_RX_CTRL),
+    .rgmii_rx_clk(RGMII_RX_CLK),
 
-        .gmii_tx_clk(tx_clk),
-        .gmii_tx_clk90(tx_clk90),
-        .gmii_txd(vgmii_txd),
-        .gmii_tx_en(vgmii_tx_en),
-        .gmii_tx_er(vgmii_tx_er),
-        .gmii_rxd(vgmii_rxd),
-        .gmii_rx_clk(rx_clk),
-        .gmii_rx_dv(vgmii_rx_dv),
-        .gmii_rx_er(vgmii_rx_er)
+    .gmii_tx_clk(tx_clk),
+    .gmii_tx_clk90(tx_clk90),
+    .gmii_txd(vgmii_txd),
+    .gmii_tx_en(vgmii_tx_en),
+    .gmii_tx_er(vgmii_tx_er),
+    .gmii_rxd(vgmii_rxd),
+    .gmii_rx_clk(rx_clk),
+    .gmii_rx_dv(vgmii_rx_dv),
+    .gmii_rx_er(vgmii_rx_er)
 );
 
-// Machine-generated ethernet support
+// Machine-generated Ethernet support
 wire rx_mon, tx_mon, blob_in_use;
 rtefi_blob #(.mac_aw(PK_TXBUF_ADDR_WIDTH))
   rtefi(
-	.rx_clk(rx_clk), .rxd(vgmii_rxd),
-	.rx_dv(vgmii_rx_dv), .rx_er(vgmii_rx_er),
-	.tx_clk(tx_clk) , .txd(vgmii_txd),
-	.tx_en(vgmii_tx_en),  // no vgmii_tx_er
+    .rx_clk(rx_clk), .rxd(vgmii_rxd),
+    .rx_dv(vgmii_rx_dv), .rx_er(vgmii_rx_er),
+    .tx_clk(tx_clk) , .txd(vgmii_txd),
+    .tx_en(vgmii_tx_en),  // no vgmii_tx_er
 
-	.enable_rx(enable_rx),
-	.config_clk(sysClk),
-	.config_s(sysConfigStrobe && ~sysGPIO_OUT[31]),
-	.config_p(1'b0),    // Stick with default UDP port
-	.config_d(sysConfigData),
-	.config_a(sysConfigAddr),
+    .enable_rx(enable_rx),
+    .config_clk(sysClk),
+    .config_s(sysConfigStrobe && ~sysGPIO_OUT[31]),
+    .config_p(1'b0),    // Stick with default UDP port
+    .config_d(sysConfigData),
+    .config_a(sysConfigAddr),
 
-	.host_raddr(txBufBadgerAddress),
-	.host_rdata(txBufQ),
-	.buf_start_addr({PK_TXBUF_ADDR_WIDTH{1'b0}}),
-	.tx_mac_start(tx_mac_start),
-	.tx_mac_done(tx_mac_done),
+    .host_raddr(txBufBadgerAddress),
+    .host_rdata(txBufQ),
+    .buf_start_addr({PK_TXBUF_ADDR_WIDTH{1'b0}}),
+    .tx_mac_start(tx_mac_start),
+    .tx_mac_done(tx_mac_done),
 
-	.rx_mac_status_d(rx_mac_status_d),
+    .rx_mac_status_d(rx_mac_status_d),
     .rx_mac_status_s(rx_mac_status_s),
-	.rx_mac_accept(rx_mac_accept),
+    .rx_mac_accept(rx_mac_accept),
     .rx_mac_buf_status(rx_mac_buf_status),
-	.rx_mac_hbank(rx_mac_hbank),
-	.rx_mac_d(rx_mac_d),
+    .rx_mac_hbank(rx_mac_hbank),
+    .rx_mac_d(rx_mac_d),
     .rx_mac_a(rx_mac_a),
     .rx_mac_wen(rx_mac_wen)
 `ifdef NOTDEF
-	.ibadge_stb(ibadge_stb), .ibadge_data(ibadge_data),
-	.obadge_stb(obadge_stb), .obadge_data(obadge_data),
-	.xdomain_fault(xdomain_fault),
-	.p2_nomangle(1'b0),
-	.p3_addr(lb_addr), .p3_control_strobe(lb_control_strobe),
-	.p3_control_rd(lb_control_rd), .p3_control_rd_valid(lb_control_rd_valid),
-	.p3_data_out(lb_data_out), .p3_data_in(p3_lb_data_in),
-	.p4_spi_clk(boot_clk), .p4_spi_cs(boot_cs),
-	.p4_spi_mosi(boot_mosi), .p4_spi_miso(boot_miso),
-	.p4_busy(boot_busy),
-	.rx_mon(rx_mon), .tx_mon(tx_mon), .in_use(blob_in_use)
+    .ibadge_stb(ibadge_stb), .ibadge_data(ibadge_data),
+    .obadge_stb(obadge_stb), .obadge_data(obadge_data),
+    .xdomain_fault(xdomain_fault),
+    .p2_nomangle(1'b0),
+    .p3_addr(lb_addr), .p3_control_strobe(lb_control_strobe),
+    .p3_control_rd(lb_control_rd), .p3_control_rd_valid(lb_control_rd_valid),
+    .p3_data_out(lb_data_out), .p3_data_in(p3_lb_data_in),
+    .p4_spi_clk(boot_clk), .p4_spi_cs(boot_cs),
+    .p4_spi_mosi(boot_mosi), .p4_spi_miso(boot_miso),
+    .p4_busy(boot_busy),
+    .rx_mon(rx_mon), .tx_mon(tx_mon), .in_use(blob_in_use)
 `endif
 );
 
