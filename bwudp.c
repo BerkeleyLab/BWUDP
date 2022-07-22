@@ -114,7 +114,7 @@ struct bwudpEndpoint {
     uint16_t               nearPort;
     bwudpCallback          callback;
 #ifdef BWUDP_ENABLE_CLIENT_SUPPORT
-    ipv4Address            arpAddresss;
+    ipv4Address            arpAddress;
 #endif
 };
 static struct bwudpEndpoint endpoints[BWUDP_ENDPOINT_CAPACITY];
@@ -267,7 +267,7 @@ bwudpCrank(void)
             if ((length + sizeof(ip->arpFrame).pad >= (int) sizeof(ip->arpFrame))
              && (ep != NULL)
              && (ep->next == ep)
-             && !memcmp(ap->spa, &ep->arpAddresss, sizeof(ipv4Address))) {
+             && !memcmp(ap->spa, &ep->arpAddress, sizeof(ipv4Address))) {
                 ip->arpEndpoint = NULL;
                 ep->next = ip->endpoints;
                 ip->endpoints = ep;
@@ -327,11 +327,11 @@ bwudpSend(bwudpHandle handle, const char *payload, int length)
             return;
         }
         if (isOnNetwork(ip, &ep->farAddress)) {
-            memcpy(&ep->arpAddresss, &ep->farAddress, sizeof(ipv4Address));
+            memcpy(&ep->arpAddress, &ep->farAddress, sizeof(ipv4Address));
         }
         else {
             if (!defaultRouteInterface) return;
-            memcpy(&ep->arpAddresss, &defaultRouteInterface->myGateway,
+            memcpy(&ep->arpAddress, &defaultRouteInterface->myGateway,
                                                            sizeof(ipv4Address));
         }
         ip->deferredTxFrameLength = l;
@@ -351,7 +351,7 @@ bwudpSend(bwudpHandle handle, const char *payload, int length)
         memcpy(ip->arpFrame.arp.sha, &ip->myEthernetMAC, sizeof(ethernetMAC));
         memcpy(ip->arpFrame.arp.spa, &ip->myAddress, sizeof(ipv4Address));
         memset(ip->arpFrame.arp.tha, 0, sizeof(ethernetMAC));
-        memcpy(ip->arpFrame.arp.tpa, &ep->arpAddresss, sizeof(ipv4Address));
+        memcpy(ip->arpFrame.arp.tpa, &ep->arpAddress, sizeof(ipv4Address));
         bwudpSendFrame(INTERFACE_INDEX &ip->arpFrame.destinationMAC, 60);
         return;
     }
