@@ -1,143 +1,231 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8"><title>BWUDP Manual</title></head><body>
-<h1>BWUDP - &lsquo;bantamweight&rsquo; UDP server/client</h1>
-<br>
-These routines provide very lightweight access to Ethernet interfaces
-such as the Badger firmware provided as part of the LBNL Bedrock
-package.&nbsp; It assumes that the lower level interfaces do not support IP fragmentation.<br>
-<h2>Data Types</h2>
-<ul>
-  <li><span style="font-weight: bold;">bwudpHandle</span><br>
-A bwudpHandle is an opaque value that should be used only as an initial
-argument to bwudpSend().&nbsp; A handle is returned by
-bwudpCreateClient() and is provided as the first argument to a bwudp
-callback function.</li>
-  <li>typedef struct ipv4Address {<br>
-&nbsp;&nbsp;&nbsp; uint8_t&nbsp; a[4];<br>
-} <span style="font-weight: bold;">ipv4Address</span>;<br>
-Holds an IPv4 host address as four unsigned eight bit values.&nbsp; Specifying addresses in this format avoids endian issues.<br>
-  </li>
-  <li>typedef struct ethernetMAC {<br>
-&nbsp;&nbsp;&nbsp; uint8_t&nbsp; a[6];<br>
-} <span style="font-weight: bold;">ethernetMAC</span>;<br>
-Holds an Ethernet hardware address as six unsigned eight bit values.<br>
-  </li>
-</ul>
-<p></p>
-<h2>Callback functions</h2>
-<p>An application provides one callback function per server or client
-instance.&nbsp; The function is invoked when data arrive from that
-server or client.&nbsp; A callback function should match the prototype</p>
-<p>void <span style="font-style: italic;">callback</span>(bwudpHandle handle, char *payload, int length);</p>
-<p>The payload contains only the UDP payload of the incoming packet so the length can vary from 0 to 1472, inclusive.<br>
-Callback functions are invoked from within the bwudpCrank() function
-which the application must call regularly to check for the arrival of
-incoming packets.<br>
-</p>
-<h2>Registering an interface</h2>
-An application must register each hardware interface before it can be
-used to send or receive data.&nbsp; Registration is performed by invoking<br>
-<br>
-int <span style="font-weight: bold;">bwudpRegisterInterface</span>(ethernetMAC *ethernetMAC, ipv4Address *address, ipv4Address *netmask, ipv4Address *gateway);<br>
-<br>
-The return value is 0 if the registration succeeded and -1
-otherwise.&nbsp; If the application configures more than one interface
-(BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
-additional initial 'int' argument whose value is the index (0 to N-1) of
- the interface to be registered.&nbsp; The netmask and gateway arguments
- are ignored if only server endpoints are configured.&nbsp; If multiple
- interfaces are configured only the interface with the default route
-should have a non-NULL value passed as the gateway.<br>
-<h2>Registering a server</h2>
-<p>To register a server invoke</p>
-<p>int <span style="font-weight: bold;">bwudpRegisterServer</span>(int port, bwudpCallback callback);</p>
-<p>The port argument specifies the UDP port, in network byte order, on
-which the server will listen for packets.&nbsp; The return value is 0 if
- the registration succeeded and -1 otherwise.&nbsp; If the application
-configures more than one interface
-(BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
-additional initial 'int' argument whose value is the index (0 to N-1) of
- the interface on which the server will listen.&nbsp; The specified
-callback function will be invoked when a UDP packet with the specified
-destination port address arrives.<br>
-</p>
-<h2>Creating a client</h2>
-<p>If the application was built with client support a client connection can be created with a call to</p>
-<p>bwudpHandle <span style="font-weight: bold;">bwudpCreateClient</span>(ipv4Address *serverAddress, int serverPort, int localPort, bwudpCallback callback);</p>
-<p>The server and local UDP port numbers are specified in network byte
-order.&nbsp; The specified callback function will be invoked when a UDP
-packet with the specified destination port address arrives.&nbsp; A
-value of NULL is returned if the number of available endpoints
-(clients/servers) has been exhausted or a route to the specified address
- can not be determined.<br>
-</p>
-<h2><span style="font-weight: bold;"></span>Sending data</h2>
-<p>To send data invoke</p>
-<p>void <span style="font-weight: bold;">bwudpSend</span>(bwudpHandle handle, const char *payload, int length);</p>
-<p>The payload contains only the UDP so the length can vary from 0 to 1472, inclusive.<br>
-An initial transmission to a client is deferred until the client Ethernet address has been obtained with an ARP request.&nbsp; Note that
-timeout detection and optional retries are the responsibility of the
-application.<br>
-</p>
-<h2>Obtaining network statistics<br>
-</h2>
-
-<p>The value of assorted counters can be obtained by calling</p>
-<p>const struct bwudpStatistics *<span style="font-weight: bold;">bwudpStatistics</span>(void);</p>
-<p>If the application configures
-more than one interface
-(BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes a single
-'int' argument whose value is the index (0 to N-1) of
- the interface for which statistics are to be read.&nbsp; The function
-returns a pointer to a data structure as defined in the bwudp.h header file.<br>
-</p>
-<h1>Adding to an application<br>
-
-</h1>
-
-<p>To use bwudp in an application you must supply a header file and
-three C functions.&nbsp; The header file provides three optional C
-preprocessor definitions:<br>
-</p>
-<ul>
-  <li><span style="font-family: monospace;">#define BWUDP_INTERFACE_CAPACITY N</span><br>
-where N is the number of hardware interfaces to be supported.&nbsp; The default is 1.</li>
-  <li><span style="font-family: monospace;">#define BWUDP_ENDPOINT_CAPACITY N</span><br>
-
-where N is the number of client/server instances to be supported.&nbsp; The default is 4.</li>
-  <li><span style="font-family: monospace;">#define BWUDP_ENABLE_CLIENT_SUPPORT</span><br>
-
-If defined, both server and client endpoints can be created.&nbsp; If left undefined only server endpoints can be created.</li>
-</ul>
-<p>The functions that must be provided are declared in bwudp.h as:<br>
-</p>
-<ul>
-  <li>void <span style="font-weight: bold;">bwudpInitializeInterface</span>(const uint8_t *ethernetAddress, const uint8_t *ipv4Address);<br>
-This function is invoked from bwudpRegisterInterface() and should
-perform whatever actions are required to configure and start the network
- interface.&nbsp; The Badger support version of this function sets the Ethernet and IPv4 addresses into the firmware and enables packet
-reception.</li>
-  <li>void <span style="font-weight: bold;">bwudpSendFrame</span>(const void *frame, int length);<br>
-
-This function is invoked to send the specified Ethernet frame.&nbsp; The
- referenced frame and length include the 14-byte Ethernet header and the Ethernet payload, but do not include the 4-byte Ethernet Frame Check
-Sequence.&nbsp; Thus the minimum value length is 60.</li>
-  <li>int <span style="font-weight: bold;">bwudpFetchFrame</span>(void *frame);<br>
-
-
-This function is invoked to check for the presence of a newly-arrived
-packet and, if one is found, to copy its contents, including the 14-byte
- Ethernet header and the Ethernet payload, but not the 4-byte Ethernet
-Frame Check Sequence, to the specified location.&nbsp; The return value
-must be 0 if no packet was copied otherwise the number of bytes
-copied.&nbsp; Thus the valid range of return values is 0, or 60 through 1514, inclusive.</li></ul>
-<p>If the application configures more than one interface
-(BWUDP_INTERFACE_CAPACITY &gt; 1) then all three functions have an
-additional initial 'int' argument whose value is the index (0 to N-1) of
- the interface to which the call applies.<br>
-</p>
-<p>The application must invoke<span style="font-family: monospace;"> </span>bwudpCrank() regularly to check for and handle incoming packets.<span style="font-family: monospace;"></span></p>
-
-
-</body></html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>BWUDP Manual</title>
+  </head>
+  <body>
+    <h1>BWUDP - ‘bantamweight’ UDP server/client</h1>
+    <br>
+    These routines provide very lightweight access to Ethernet
+    interfaces
+    such as the Badger firmware provided as part of the LBNL Bedrock
+    package.&nbsp; It assumes that the lower level interfaces do not
+    support IP fragmentation.<br>
+    <h2>Data Types</h2>
+    <ul>
+      <li><span style="font-weight: bold;">bwudpHandle</span><br>
+        A bwudpHandle is an opaque value that should be used only as an
+        initial
+        argument to bwudpSend().&nbsp; A handle is returned by
+        bwudpCreateClient() and is provided as the first argument to a
+        bwudp
+        callback function.</li>
+      <li>typedef struct ipv4Address {<br>
+        &nbsp;&nbsp;&nbsp; uint8_t&nbsp; a[4];<br>
+        } <span style="font-weight: bold;">ipv4Address</span>;<br>
+        Holds an IPv4 host address as four unsigned eight bit
+        values.&nbsp; Specifying addresses in this format avoids endian
+        issues.<br>
+      </li>
+      <li>typedef struct ethernetMAC {<br>
+        &nbsp;&nbsp;&nbsp; uint8_t&nbsp; a[6];<br>
+        } <span style="font-weight: bold;">ethernetMAC</span>;<br>
+        Holds an Ethernet hardware address as six unsigned eight bit
+        values.<br>
+      </li>
+    </ul>
+    <p></p>
+    <h2>Callback functions</h2>
+    <p>An application provides one callback function per server or
+      client
+      instance.&nbsp; The function is invoked when data arrive from that
+      server or client.&nbsp; A callback function should match the
+      prototype</p>
+    <p>void <span style="font-style: italic;">callback</span>(bwudpHandle
+      handle, char *payload, int length);</p>
+    <p>The payload contains only the UDP payload of the incoming packet
+      so the length can vary from 0 to 1472, inclusive.<br>
+      Callback functions are invoked from within the bwudpCrank()
+      function
+      which the application must call regularly to check for the arrival
+      of
+      incoming packets.<br>
+    </p>
+    <h2>Registering an interface</h2>
+    An application must register each hardware interface before it can
+    be
+    used to send or receive data.&nbsp; Registration is performed by
+    invoking<br>
+    <br>
+    int <span style="font-weight: bold;">bwudpRegisterInterface</span>(ethernetMAC
+    *ethernetMAC, ipv4Address *address, ipv4Address *netmask,
+    ipv4Address *gateway);<br>
+    <br>
+    The return value is 0 if the registration succeeded and -1
+    otherwise.&nbsp; If the application configures more than one
+    interface
+    (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
+    additional initial 'int' argument whose value is the index (0 to
+    N-1) of the interface to be registered.&nbsp; The netmask and
+    gateway arguments are ignored if only server endpoints are
+    configured.&nbsp; If multiple interfaces are configured only the
+    interface with the default route
+    should have a non-NULL value passed as the gateway.<br>
+    <h2>Registering a server</h2>
+    <p>To register a server invoke</p>
+    <p>int <span style="font-weight: bold;">bwudpRegisterServer</span>(int
+      port, bwudpCallback callback);</p>
+    <p>The port argument specifies the UDP port, in network byte order,
+      on
+      which the server will listen for packets.&nbsp; The return value
+      is 0 if the registration succeeded and -1 otherwise.&nbsp; If the
+      application
+      configures more than one interface
+      (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
+      additional initial 'int' argument whose value is the index (0 to
+      N-1) of the interface on which the server will listen.&nbsp; The
+      specified
+      callback function will be invoked when a UDP packet with the
+      specified
+      destination port address arrives.<br>
+    </p>
+    <h2>Creating a client</h2>
+    <p>If the application was built with client support a client
+      connection can be created with a call to</p>
+    <p>bwudpHandle <span style="font-weight: bold;">bwudpCreateClient</span>(ipv4Address
+      *serverAddress, int serverPort, int localPort, bwudpCallback
+      callback);</p>
+    <p>The server and local UDP port numbers are specified in network
+      byte
+      order.&nbsp; The specified callback function will be invoked when
+      a UDP
+      packet with the specified destination port address arrives.&nbsp;
+      A
+      value of NULL is returned if the number of available endpoints
+      (clients/servers) has been exhausted or a route to the specified
+      address can not be determined.<br>
+    </p>
+    <h2><span style="font-weight: bold;"></span>Sending data</h2>
+    <p>To send data invoke</p>
+    <p>void <span style="font-weight: bold;">bwudpSend</span>(bwudpHandle
+      handle, const char *payload, int length);</p>
+    <p>The payload contains only the UDP so the length can vary from 0
+      to 1472, inclusive.<br>
+      An initial transmission to a client is deferred until the client
+      Ethernet address has been obtained with an ARP request.&nbsp; Note
+      that
+      timeout detection and optional retries are the responsibility of
+      the
+      application.<br>
+    </p>
+    <h2>Obtaining network statistics<br>
+    </h2>
+    <p>The value of assorted counters can be obtained by calling</p>
+    <p>const struct bwudpStatistics *<span style="font-weight: bold;">bwudpStatistics</span>(void);</p>
+    <p>If the application configures
+      more than one interface
+      (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes a
+      single
+      'int' argument whose value is the index (0 to N-1) of the
+      interface for which statistics are to be read.&nbsp; The function
+      returns a pointer to a data structure as defined in the bwudp.h
+      header file.<br>
+    </p>
+    <h1>Adding BWUDP and Badger to an application</h1>
+    <h2>Firmware</h2>
+    <ul>
+      <li>The processor communicates with the Badger firmware through a
+        group of registers provided by an AXI4-Lite generic register
+        block design component so the design must provide one.&nbsp; In
+        the application top level module provide the generic register
+        boilerplate:<br>
+        <code>// General-purpose I/O register glue</code><br>
+        <code>wire [31:0] GPIO_OUT;</code><br>
+        <code>wire [GPIO_IDX_COUNT-1:0] GPIO_STROBES;</code><br>
+        <code>wire [31:0] GPIO_IN [0:GPIO_IDX_COUNT-1];</code><br>
+        <code>wire [(GPIO_IDX_COUNT*32)-1:0] GPIO_IN_FLATTENED;</code><br>
+        <code>genvar i;</code><br>
+        <code>generate</code><br>
+        <code>for (i = 0 ; i &lt; GPIO_IDX_COUNT ; i = i + 1) begin</code><br>
+        <code>&nbsp;&nbsp;&nbsp; assign GPIO_IN_FLATTENED[i*32+:32] =
+          GPIO_IN[i];</code><br>
+        <code>end</code><br>
+        <code>endgenerate</code></li>
+      <li>Copy badger.v and sup/Makefile from the bantamweight UDP
+        source directory and gmii_to_rgmii.v from the bedrock source to
+        a source directory in the Vivado application.Edit the Makefile
+        so that it refers to the bedrock source directory,&nbsp; Run
+        make to create badgerMerged.v.<br>
+      </li>
+      <li>Add badger.v, badgerMerged.v and gmii_to_rgmii.v to the
+        application.</li>
+      <li>In the top-level application module instantiate the badger
+        module with connections to the generic register block and the
+        RGMII pins:<br>
+        <code>badger badger (</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .sysClk(sysClk),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .sysGPIO_OUT(GPIO_OUT),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysConfigStrobe(GPIO_STROBES[GPIO_IDX_NET_CONFIG_CSR]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysTxStrobe(GPIO_STROBES[GPIO_IDX_NET_TX_CSR]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysRxStrobe(GPIO_STROBES[GPIO_IDX_NET_RX_CSR]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysTxStatus(GPIO_IN[GPIO_IDX_NET_TX_CSR]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysRxStatus(GPIO_IN[GPIO_IDX_NET_RX_CSR]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysRxDataStrobe(GPIO_STROBES[GPIO_IDX_NET_RX_DATA]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp;
+          .sysRxData(GPIO_IN[GPIO_IDX_NET_RX_DATA]),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .refClk125(clk125),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .refClk125d90(clk125d90),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .rx_clk(),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .tx_clk(),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_RX_CLK(RGMII_RX_CLK),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_RX_CTRL(RGMII_RX_CTRL),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_RXD(RGMII_RXD),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_TX_CLK(RGMII_TX_CLK),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_TX_CTRL(RGMII_TX_CTRL),</code><code><br>
+        </code><code>&nbsp;&nbsp;&nbsp; .RGMII_TXD(RGMII_TXD));</code></li>
+    </ul>
+    <p><br>
+    </p>
+    <h2>Software<br>
+    </h2>
+    <p>Copy bwudp.c, bwudp.h, and badger.c from the bantamweight UDP
+      source directory to the application source directory.&nbsp; Create
+      a header (bwudp_config.h) containing three optional C
+      preprocessor definitions:<br>
+      <meta charset="UTF-8">
+    </p>
+    <ul style="caret-color: rgb(0, 0, 0); color: rgb(0, 0, 0);
+      font-family: -webkit-standard; font-style: normal;
+      font-variant-caps: normal; font-weight: 400; letter-spacing:
+      normal; orphans: auto; text-align: start; text-indent: 0px;
+      text-transform: none; white-space: normal; widows: auto;
+      word-spacing: 0px; -webkit-text-size-adjust: auto;
+      -webkit-text-stroke-width: 0px; text-decoration: none;">
+      <li><span style="font-family: monospace;">#define
+          BWUDP_INTERFACE_CAPACITY N</span><br>
+        where N is the number of hardware interfaces to be
+        supported.&nbsp; The default is 1.</li>
+      <li><span style="font-family: monospace;">#define
+          BWUDP_ENDPOINT_CAPACITY N</span><br>
+        where N is the number of client/server instances to be
+        supported.&nbsp; The default is 4.</li>
+      <li><span style="font-family: monospace;">#define
+          BWUDP_ENABLE_CLIENT_SUPPORT</span><br>
+        If defined, both server and client endpoints can be
+        created.&nbsp; If left undefined only server endpoints can be
+        created.</li>
+    </ul>
+    <p>In addition to issuing calls to register the interface and
+      servers and creating any required clients the application must
+      invoke<span style="font-family: monospace;"> </span>bwudpCrank()
+      regularly to check for and handle incoming packets.<span
+        style="font-family: monospace;"></span></p>
+  </body>
+</html>
