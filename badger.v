@@ -15,9 +15,11 @@ module badger (
     // Two phases of 125 MHz clock, created by on-board reference
     input            refClk125,
     input            refClk125d90,
-    // Who would use these?
+
+    // Diagnostic outputs (e.g. to frequency counters)
     output wire      rx_clk,
     output wire      tx_clk,
+
     // RGMII pins
     input            RGMII_RX_CLK,
     input            RGMII_RX_CTRL,

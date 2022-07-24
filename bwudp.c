@@ -309,11 +309,11 @@ bwudpSend(bwudpHandle handle, const char *payload, int length)
         return;
     }
     memcpy(&ip->txFrame.destinationMAC, &ep->farMAC, sizeof(ethernetMAC));
-    ip->txFrame.ipv4.destination =  ep->farAddress;
+    ip->txFrame.ipv4.destination = ep->farAddress;
     ip->txFrame.ipv4.length = htons(l);
     ip->txFrame.ipv4.checksum = headerChecksum(&ip->txFrame.ipv4);
-    ip->txFrame.udp.sourcePort =  ep->nearPort;
-    ip->txFrame.udp.destinationPort =  ep->farPort;
+    ip->txFrame.udp.sourcePort = ep->nearPort;
+    ip->txFrame.udp.destinationPort = ep->farPort;
     length += sizeof(struct udpHeader);
     ip->txFrame.udp.length = htons(length);
     memcpy(ip->txFrame.payload, payload, length);
