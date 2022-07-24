@@ -1,1 +1,1 @@
-#define BWUDP_ENABLE_CLIENT_SUPPORT
+/* Accept all default values */
