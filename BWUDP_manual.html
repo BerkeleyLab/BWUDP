@@ -10,17 +10,18 @@
     These routines provide very lightweight access to Ethernet
     interfaces
     such as the Badger firmware provided as part of the LBNL Bedrock
-    package.&nbsp; It assumes that the lower level interfaces do not
-    support IP fragmentation.<br>
+    package.&nbsp; Under typical single-interface, server-only usage the
+    package fits in less than 5 kilobytes of RAM (code plus data).&nbsp;
+    Jumbo packets are not supported.<br>
     <h2>Data Types</h2>
     <ul>
       <li><span style="font-weight: bold;">bwudpHandle</span><br>
         A bwudpHandle is an opaque value that should be used only as an
         initial
         argument to bwudpSend().&nbsp; A handle is returned by
-        bwudpCreateClient() and is provided as the first argument to a
+        bwudpCreateClient() and is provided as the first argument to the
         bwudp
-        callback function.</li>
+        callback functions.</li>
       <li>typedef struct ipv4Address {<br>
         &nbsp;&nbsp;&nbsp; uint8_t&nbsp; a[4];<br>
         } <span style="font-weight: bold;">ipv4Address</span>;<br>
@@ -65,7 +66,8 @@
     The return value is 0 if the registration succeeded and -1
     otherwise.&nbsp; If the application configures more than one
     interface
-    (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
+    (<a moz-do-not-send="true" href="#BWUDP_INTERFACE_CAPACITY">BWUDP_INTERFACE_CAPACITY</a>
+    &gt; 1) then this function takes an
     additional initial 'int' argument whose value is the index (0 to
     N-1) of the interface to be registered.&nbsp; The netmask and
     gateway arguments are ignored if only server endpoints are
@@ -82,7 +84,8 @@
       is 0 if the registration succeeded and -1 otherwise.&nbsp; If the
       application
       configures more than one interface
-      (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes an
+      (<a moz-do-not-send="true" href="#BWUDP_INTERFACE_CAPACITY">BWUDP_INTERFACE_CAPACITY</a>
+      &gt; 1) then this function takes an
       additional initial 'int' argument whose value is the index (0 to
       N-1) of the interface on which the server will listen.&nbsp; The
       specified
@@ -111,10 +114,15 @@
     <p>void <span style="font-weight: bold;">bwudpSend</span>(bwudpHandle
       handle, const char *payload, int length);</p>
     <p>The payload contains only the UDP so the length can vary from 0
-      to 1472, inclusive.<br>
+      to 1472, inclusive.</p>
+    <p>
       An initial transmission to a client is deferred until the client
-      Ethernet address has been obtained with an ARP request.&nbsp; Note
-      that
+      Ethernet address has been obtained with an ARP request.&nbsp; If
+      bwudpSend is called again before the ARP reply has been received
+      the deferred send data will be overwritten.&nbsp; In practice this
+      is unlikely to occur since typically bwudpSend will be called
+      again only after a reply to the deferred request has been
+      received.&nbsp; Note that
       timeout detection and optional retries are the responsibility of
       the
       application.<br>
@@ -125,8 +133,8 @@
     <p>const struct bwudpStatistics *<span style="font-weight: bold;">bwudpStatistics</span>(void);</p>
     <p>If the application configures
       more than one interface
-      (BWUDP_INTERFACE_CAPACITY &gt; 1) then this function takes a
-      single
+      (<a moz-do-not-send="true" href="#BWUDP_INTERFACE_CAPACITY">BWUDP_INTERFACE_CAPACITY
+      </a>&gt; 1) then this function takes a single
       'int' argument whose value is the index (0 to N-1) of the
       interface for which statistics are to be read.&nbsp; The function
       returns a pointer to a data structure as defined in the bwudp.h
@@ -208,14 +216,16 @@
       text-transform: none; white-space: normal; widows: auto;
       word-spacing: 0px; -webkit-text-size-adjust: auto;
       -webkit-text-stroke-width: 0px; text-decoration: none;">
-      <li><span style="font-family: monospace;">#define
+      <li><span style="font-family: monospace;"><a
+            name="BWUDP_INTERFACE_CAPACITY"></a>#define
           BWUDP_INTERFACE_CAPACITY N</span><br>
         where N is the number of hardware interfaces to be
         supported.&nbsp; The default is 1.</li>
       <li><span style="font-family: monospace;">#define
           BWUDP_ENDPOINT_CAPACITY N</span><br>
         where N is the number of client/server instances to be
-        supported.&nbsp; The default is 4.</li>
+        supported.&nbsp; The default is 4.<br>
+      </li>
       <li><span style="font-family: monospace;">#define
           BWUDP_ENABLE_CLIENT_SUPPORT</span><br>
         If defined, both server and client endpoints can be
@@ -223,7 +233,7 @@
         created.</li>
     </ul>
     <p>In addition to issuing calls to register the interface and
-      servers and creating any required clients the application must
+      server(s) and creating any required clients the application must
       invoke<span style="font-family: monospace;"> </span>bwudpCrank()
       regularly to check for and handle incoming packets.<span
         style="font-family: monospace;"></span></p>
