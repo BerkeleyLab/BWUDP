@@ -74,10 +74,12 @@ href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_EN
     <p>int <span style="font-weight: bold;">bwudpRegisterServer</span>(int
 
       port, bwudpCallback callback);</p>
-    <p>The port argument specifies the UDP port, in network byte order,
-      on which the server will listen for packets.&nbsp; The return
-      value is 0 if the registration succeeded and -1 otherwise.&nbsp;
-      If the application is configured with <a moz-do-not-send="true"
+    <p>The port argument specifies the UDP port, <span
+        style="font-weight: bold;">in </span><span style="font-weight:
+        bold;">network byte order</span>, on which the server will
+      listen for packets.&nbsp; The return value is 0 if the
+      registration succeeded and -1 otherwise.&nbsp; If the application
+      is configured with <a moz-do-not-send="true"
         href="#BWUDP_INTERFACE_CAPACITY">more than one interface</a>
       this function takes an additional initial 'int' argument whose
       value is the index (0 to N-1) of the interface on which the server
