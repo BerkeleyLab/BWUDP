@@ -151,7 +151,7 @@ static struct bwudpInterface interfaces[BWUDP_INTERFACE_CAPACITY];
 #ifdef BWUDP_ENABLE_CLIENT_SUPPORT
 static struct bwudpInterface *defaultRouteInterface;
 static int
-isOnNetwork(struct bwudpInterface *ip, ipv4Address *addr)
+isOnNetwork(struct bwudpInterface *ip, const ipv4Address *addr)
 {
     unsigned int i;
     for (i = 0 ; i < sizeof addr->a ; i++) {
