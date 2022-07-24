@@ -181,10 +181,10 @@ headerChecksum(struct ipv4Header *ip)
 
 int
 bwudpRegisterInterface(BWUDP_INTERFACE_INDEX
-                       ethernetMAC *eMAC,
-                       ipv4Address *address,
-                       ipv4Address *netmask,
-                       ipv4Address *gateway)
+                       const ethernetMAC *eMAC,
+                       const ipv4Address *address,
+                       const ipv4Address *netmask,
+                       const ipv4Address *gateway)
 {
 #if BWUDP_INTERFACE_CAPACITY == 1
     int interfaceIndex = 0;
@@ -381,7 +381,7 @@ bwudpRegisterServer(BWUDP_INTERFACE_INDEX int port, bwudpCallback callback)
 
 #ifdef BWUDP_ENABLE_CLIENT_SUPPORT
 bwudpHandle
-bwudpCreateClient(ipv4Address *serverAddress, int serverPort,
+bwudpCreateClient(const ipv4Address *serverAddress, int serverPort,
                                           int localPort, bwudpCallback callback)
 {
     struct bwudpInterface *ip = defaultRouteInterface;

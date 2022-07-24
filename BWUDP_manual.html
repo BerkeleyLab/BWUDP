@@ -9,9 +9,12 @@
     <br>
     These routines provide very lightweight access to Ethernet
     interfaces such as the Badger firmware provided as part of the LBNL
-    Bedrock package.&nbsp; Under typical single-interface, server-only
-    usage the package fits in less than 5 kilobytes of RAM (code plus
-    data).&nbsp; Jumbo packets are not supported.<br>
+    <a moz-do-not-send="true"
+      href="https://github.com/BerkeleyLab/Bedrock"> Bedrock</a>
+    package.&nbsp; When configured for single-interface, server-only
+    applications the memory footprint including both code and data is
+    typically less than 5 kilobytes.&nbsp; Jumbo packets are not
+    supported.<br>
     <h2>Data Types</h2>
     <ul>
       <li><span style="font-weight: bold;">bwudpHandle</span><br>
@@ -37,9 +40,10 @@
     <h2>Callback functions</h2>
     <p>An application provides one callback function per server or
       client instance.&nbsp; The function is invoked when data arrive
-      from that server or client.&nbsp; A callback function should match
-      the prototype</p>
+      from that server or client.&nbsp; Callback functions have the
+      prototype</p>
     <p>void <span style="font-style: italic;">callback</span>(bwudpHandle
+
 
       handle, char *payload, int length);</p>
     <p>The payload contains only the UDP payload of the incoming packet
@@ -53,25 +57,27 @@
     be used to send or receive data.&nbsp; Registration is performed by
     invoking<br>
     <br>
-    int <span style="font-weight: bold;">bwudpRegisterInterface</span>(ethernetMAC
-
-    *ethernetMAC, ipv4Address *address, ipv4Address *netmask,
-    ipv4Address *gateway);<br>
+    int <span style="font-weight: bold;">bwudpRegisterInterface</span>(const
+    ethernetMAC *ethernetMAC, const ipv4Address *address, const
+    ipv4Address *netmask, const ipv4Address *gateway);<br>
     <br>
     The return value is 0 if the registration succeeded and -1
     otherwise.&nbsp; If the application is configured with <a
       moz-do-not-send="true" href="#BWUDP_INTERFACE_CAPACITY">more than
       one interface</a><span style="text-decoration: underline;"> </span>this
+
     function takes an additional initial 'int' argument whose value is
     the index (0 to N-1) of the interface to be registered and only the
     interface with the default route should have a non-NULL value passed
     as the gateway.&nbsp; If the application is configured without <a
       moz-do-not-send="true"
 href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_ENABLE_CLIENT_SUPPORT">client
+
       support</a> the netmask and gateway arguments are ignored.<br>
     <h2>Registering a server</h2>
     <p>To register a server invoke</p>
     <p>int <span style="font-weight: bold;">bwudpRegisterServer</span>(int
+
 
       port, bwudpCallback callback);</p>
     <p>The port argument specifies the UDP port, <span
@@ -91,10 +97,9 @@ href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_EN
     <p>If the application is configured with <a moz-do-not-send="true"
         href="#BWUDP_ENABLE_CLIENT_SUPPORT">client support</a> a client
       connection can be created with a call to</p>
-    <p>bwudpHandle <span style="font-weight: bold;">bwudpCreateClient</span>(ipv4Address
-
-      *serverAddress, int serverPort, int localPort, bwudpCallback
-      callback);</p>
+    <p>bwudpHandle <span style="font-weight: bold;">bwudpCreateClient</span>(const
+      ipv4Address *serverAddress, int serverPort, int localPort,
+      bwudpCallback callback);</p>
     <p>The server and local UDP port numbers are specified in network
       byte order.&nbsp; The specified callback function will be invoked
       when a UDP packet with the specified destination port address
@@ -105,6 +110,7 @@ href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_EN
     <h2><span style="font-weight: bold;"></span>Sending data</h2>
     <p>To send data invoke</p>
     <p>void <span style="font-weight: bold;">bwudpSend</span>(bwudpHandle
+
 
       handle, const char *payload, int length);</p>
     <p>The payload contains only the UDP so the length can vary from 0

@@ -73,17 +73,17 @@ typedef struct ipv4Address {
 } ipv4Address;
 
 int bwudpRegisterInterface(BWUDP_INTERFACE_INDEX
-                           ethernetMAC *ethernetMAC,
-                           ipv4Address *address,
-                           ipv4Address *netmask,
-                           ipv4Address *gateway);
+                           const ethernetMAC *ethernetMAC,
+                           const ipv4Address *address,
+                           const ipv4Address *netmask,
+                           const ipv4Address *gateway);
 void bwudpCrank(void);
 
 typedef void *bwudpHandle;
 typedef void (*bwudpCallback)(bwudpHandle handle, char *payload, int length);
 
 int bwudpRegisterServer(BWUDP_INTERFACE_INDEX int port,bwudpCallback callback);
-bwudpHandle bwudpCreateClient(ipv4Address *serverAddress, int serverPort,
+bwudpHandle bwudpCreateClient(const ipv4Address *serverAddress, int serverPort,
                                          int localPort, bwudpCallback callback);
 void bwudpSend(bwudpHandle handle, const char *payload, int length);
 
