@@ -140,21 +140,13 @@ href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_EN
     <ul>
       <li>The processor communicates with the Badger firmware through a
         group of registers provided by an AXI4-Lite generic register
-        block design component so the design must provide one.&nbsp; In
-        the application top level module provide the generic register
-        boilerplate:<br>
-        <code>// General-purpose I/O register glue</code><br>
-        <code>wire [31:0] GPIO_OUT;</code><br>
-        <code>wire [GPIO_IDX_COUNT-1:0] GPIO_STROBES;</code><br>
-        <code>wire [31:0] GPIO_IN [0:GPIO_IDX_COUNT-1];</code><br>
-        <code>wire [(GPIO_IDX_COUNT*32)-1:0] GPIO_IN_FLATTENED;</code><br>
-        <code>genvar i;</code><br>
-        <code>generate</code><br>
-        <code>for (i = 0 ; i &lt; GPIO_IDX_COUNT ; i = i + 1) begin</code><br>
-        <code>&nbsp;&nbsp;&nbsp; assign GPIO_IN_FLATTENED[i*32+:32] =
-          GPIO_IN[i];</code><br>
-        <code>end</code><br>
-        <code>endgenerate</code></li>
+        block design component which the design must provide.&nbsp; The
+        driver uses the following register index names:<br>
+        <code>GPIO_IDX_NET_CONFIG_CSR</code><code><br>
+        </code><code>GPIO_IDX_NET_TX_CSR</code><code><br>
+        </code><code>GPIO_IDX_NET_RX_CSR</code><code><br>
+        </code><code>GPIO_IDX_NET_RX_DATA</code><br>
+        <span style="font-family: monospace;"></span><code></code><code></code><code></code><code></code><code></code><code></code><code></code><code></code><code></code><code></code><code></code></li>
       <li>Copy badger.v and sup/Makefile from the bantamweight UDP
         source directory and gmii_to_rgmii.v from the bedrock source to
         a source directory in the Vivado application.Edit the Makefile
@@ -194,8 +186,6 @@ href="file:///Users/eric/src/Firmware/bantamweightUDP/BWUDP_manual.html#BWUDP_EN
         </code><code>&nbsp;&nbsp;&nbsp; .RGMII_TX_CTRL(RGMII_TX_CTRL),</code><code><br>
         </code><code>&nbsp;&nbsp;&nbsp; .RGMII_TXD(RGMII_TXD));</code></li>
     </ul>
-    <p><br>
-    </p>
     <h2>Software<br>
     </h2>
     <p>Copy bwudp.c, bwudp.h, and badger.c from the bantamweight UDP
