@@ -7,4 +7,4 @@ CFLAGS += -Wnested-externs -Winline -Wwrite-strings -Waggregate-return
 all: badger.o bwudp.o
 
 clean:
-	rm -f *.o
+	rm -f *.o *.d
