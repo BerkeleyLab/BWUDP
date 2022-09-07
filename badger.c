@@ -33,7 +33,13 @@
  */
 #include <stdio.h>
 #include "bwudp.h"
+// User should provide a real gpio.h with the correct definitions,
+// otherwise a dummy one will be used
+#ifndef BANTAMWEIGHTUDP_USE_REAL_GPIO_H
+#include "gpioDummy.h"
+#else
 #include "gpio.h"
+#endif
 
 #define CONFIG_CSR_ENABLE_RX_ENABLE 0x80000000
 #define CONFIG_CSR_RX_ENABLE        0x40000000
