@@ -35,7 +35,7 @@
 #include "bwudp.h"
 // User should provide a real gpio.h with the correct definitions,
 // otherwise a dummy one will be used
-#ifndef BANTAMWEIGHTUDP_USE_REAL_GPIO_H
+#ifndef BWUDP_USE_REAL_GPIO_H
 #include "gpioDummy.h"
 #else
 #include "gpio.h"
