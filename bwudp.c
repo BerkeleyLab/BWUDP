@@ -209,6 +209,9 @@ bwudpRegisterInterface(BWUDP_INTERFACE_INDEX
     else {
         memset(&ip->myNetmask, 0xFF, sizeof(ipv4Address));
     }
+#else
+    (void) netmask;  /* not used under these conditions */
+    (void) gateway;  /* not used under these conditions */
 #endif
     memcpy(&ip->txFrame.sourceMAC, &ip->myEthernetMAC, sizeof(struct ethernetMAC));
     ip->txFrame.protocol[0] = 0x08;

@@ -7,4 +7,4 @@
 static unsigned int GPIO_READ(unsigned long a) {return *(volatile unsigned int *) a;}
 static void GPIO_WRITE(unsigned long a, unsigned int d) {*(volatile unsigned int *)a = d;}
 
-#warning "Using dummy gpio.h header for bantamweightUDP library. This is inteded for testing purposes only!!!"
+#warning "Using dummy gpio.h header for bantamweightUDP library. This is intended for testing purposes only!!!"

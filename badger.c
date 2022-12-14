@@ -33,8 +33,8 @@
  */
 #include <stdio.h>
 #include "bwudp.h"
-// User should provide a real gpio.h with the correct definitions,
-// otherwise a dummy one will be used
+/* User should provide a real gpio.h with the correct definitions,
+ * otherwise a dummy one will be used */
 #ifndef BWUDP_USE_REAL_GPIO_H
 #include "gpioDummy.h"
 #else
